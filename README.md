@@ -8,6 +8,7 @@ You want your homelab to have an Apex Domain i.e. your.name and not yourname.sop
 DynDNS Clients are preconfigured for dyndns.tld or duckdns.tld or fritzbox, but not for regular DNS Providers.
 Apex domains CANNOT be cname records (so domain.tld CANNOT point to yourname.dyndns.tld) and NEED an A record.
 
+## Solution provided
 
 ```mermaid
 
@@ -15,7 +16,8 @@ flowchart LR
 
 subgraph I[Internet]
     IP[ipify.org]
-    N[Name.com]
+    NAPI[Name.com API]
+    N[Name.com DNS]
     DNS[DNS Root Servers]
 end
 
@@ -26,13 +28,11 @@ end
 
 P -- 1. get current IP --> IP
 P -- 2. compare to last IP --> TXT
-P -- 3. update DNS Server --> N
-N -- 4. update DNS Servers --> DNS
-
+P -- 3. update IP --> NAPI
+NAPI -- 4. update A entry --> N
+N <-- 5. DNS queries --> DNS
 
 ```
-
-## Solution provided
 
 - select a DNS provider with well documented API (i.e. name.com)
 - get own domain.tld for ~10bucks a year
