@@ -8,6 +8,30 @@ You want your homelab to have an Apex Domain i.e. your.name and not yourname.sop
 DynDNS Clients are preconfigured for dyndns.tld or duckdns.tld or fritzbox, but not for regular DNS Providers.
 Apex domains CANNOT be cname records (so domain.tld CANNOT point to yourname.dyndns.tld) and NEED an A record.
 
+
+```mermaid
+
+flowchart LR
+
+subgraph I[Internet]
+    IP[ipify.org]
+    N[Name.com]
+    DNS[DNS Root Servers]
+end
+
+subgraph L[Home Lab]
+    P[Python Script]
+    TXT[current_ip.txt]
+end
+
+P -- 1. get current IP --> IP
+P -- 2. compare to last IP --> TXT
+P -- 3. update DNS Server --> N
+N -- 4. update DNS Servers --> DNS
+
+
+```
+
 ## Solution provided
 
 - select a DNS provider with well documented API (i.e. name.com)
@@ -22,8 +46,34 @@ Apex domains CANNOT be cname records (so domain.tld CANNOT point to yourname.dyn
 
 ## Alternative solutions (might be easier then running this script)
 
-- name.com fake CNAME entry:
-While Apex DNS entries CANNOT be CNAME entries (would break the DNS standard for several reasons), name.com has a workaround: You can set a CNAME entry in your name.com administration for your domain.tld apex domain and point it to yourname.dyndns.tld, and name.com will INTERNALLY resolve the cname and REPLY a VALID A record for domain.tld. From the outside, it looks like you set a static IP while name.com does the magic. Downside: you now rely on name.com AND your dyndns provider AND you need a dyndns client.
+```mermaid
+flowchart TD
+subgraph HOME[Your Home Network]
+    DYNC[your regular dyndns client]
+end
+
+subgraph I[Internet]
+    DYNS[yourname.dyndns.tld]
+    
+    subgraph NAME[Name.com]
+        subgraph APEX[YOURNAME.TLD]
+            A[A-Entry]
+            ANAME[Webui ANAME entry]
+        end
+    end
+end
+
+DYNS -- name.com internal query --> ANAME
+
+ANAME -- update --> A
+DYNC -- update --> DYNS
+A -- resolv YOURNAME.TLD --> P[DNS Reply: A-entry]
+
+```
+
+- name.com fake ANAME entry - mimics CNAME functions while returning a valid A entry so the DNS Clients thinks your Ip is static.
+  - officially, Apex Domains CANNOT have CNAME entries because theese do not return DNS-Servers, MX entries etc.
+- Cloudflare Tunnels
 
 ## Features
 
