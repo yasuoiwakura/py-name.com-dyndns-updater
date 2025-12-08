@@ -12,10 +12,10 @@ Apex domains CANNOT be cname records (so domain.tld CANNOT point to yourname.dyn
 
 ```mermaid
 sequenceDiagram
-    current_ip.txt->>Script: Read last IP
-    Script->>Ipify.org: Fetch IP
+    current_ip.txt->>Script: READ last IP
+    Ipify.org->>Script: GET current IP
     Script->>Script: IP Changed?
-    Script->>Name.com: via API: write new IP to Apex "A" record
+    Script->>Name.com: UPDATE new IP to Apex "A" record
     Name.com-->ROOT-DNS: DNS propagation
     Script->>current_ip.txt: Store IP
 
