@@ -11,26 +11,15 @@ Apex domains CANNOT be cname records (so domain.tld CANNOT point to yourname.dyn
 ## Solution provided
 
 ```mermaid
+sequenceDiagram
+    current_ip.txt->>Script: Read last IP
+    Script->>Ipify.org: Fetch IP
+    Script->>Script: IP Changed?
+    Script->>Name.com API: Update if changed
+    Name.com API->>Name.com DNS: Update "A" record
+    Name.com DNS-->ROOT-DNS: DNS propagation
+    Script->>current_ip.txt: Store IP
 
-flowchart LR
-
-subgraph I[Internet]
-    IP[ipify.org]
-    NAPI[Name.com API]
-    N[Name.com DNS]
-    DNS[DNS Root Servers]
-end
-
-subgraph L[Home Lab]
-    P[Python Script]
-    TXT[current_ip.txt]
-end
-
-P -- 1. get current IP --> IP
-P -- 2. compare to last IP --> TXT
-P -- 3. update IP --> NAPI
-NAPI -- 4. update A entry --> N
-N <-- 5. DNS queries --> DNS
 
 ```
 
