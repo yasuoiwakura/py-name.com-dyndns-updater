@@ -15,9 +15,8 @@ sequenceDiagram
     current_ip.txt->>Script: Read last IP
     Script->>Ipify.org: Fetch IP
     Script->>Script: IP Changed?
-    Script->>Name.com API: Update if changed
-    Name.com API->>Name.com DNS: Update "A" record
-    Name.com DNS-->ROOT-DNS: DNS propagation
+    Script->>Name.com: via API: write new IP to Apex "A" record
+    Name.com-->ROOT-DNS: DNS propagation
     Script->>current_ip.txt: Store IP
 
 
