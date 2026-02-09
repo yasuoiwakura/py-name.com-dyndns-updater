@@ -1,42 +1,33 @@
 import json
 
-# import requests
-
-
 def lambda_handler(event, context):
-    """Sample pure Lambda function
+    """Lambda Funktion zum Abrufen der echten IP-Adresse der Anfrage"""
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
+    # Die IP-Adresse wird bevorzugt aus den Headern extrahiert
+    ip_address = None
 
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+    # Überprüfen, ob der X-Forwarded-For Header vorhanden ist
+    if 'headers' in event:
+        x_forwarded_for = event['headers'].get('X-Forwarded-For')
+        if x_forwarded_for:
+            # Die erste IP-Adresse im X-Forwarded-For Header ist die ursprüngliche IP-Adresse des Clients
+            ip_address = x_forwarded_for.split(',')[0].strip()
+    
+    # Wenn die IP-Adresse nicht im X-Forwarded-For Header gefunden wurde, prüfe X-Real-IP
+    if not ip_address and 'headers' in event:
+        x_real_ip = event['headers'].get('X-Real-IP')
+        if x_real_ip:
+            ip_address = x_real_ip.strip()
 
-    context: object, required
-        Lambda Context runtime methods and attributes
+    # Wenn die IP-Adresse immer noch nicht gefunden wurde, nehme sie aus dem sourceIp im Event
+    if not ip_address:
+        ip_address = event['requestContext']['identity'].get('sourceIp')
 
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
-
+    # Rückgabe der IP-Adresse im JSON-Format (Format, wie es viele IP-Checker verwenden)
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "ipcheck dir",
-            # "location": ip.text.replace("\n", "")
+            "ip": ip_address,
+            "message": "Ihre IP-Adresse"
         }),
     }
