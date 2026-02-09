@@ -12,7 +12,15 @@ def lambda_handler(event, context):
     ip_address = None
     ip_source = None  # Variable für den Herkunftsort der IP-Adresse
 
-    logger.debug("Event: %s", json.dumps(event))  # Logge das gesamte Event für Debugging
+    # Überprüfen, ob der Debug-Parameter im Query-String übergeben wurde
+    debug_mode = False
+    query_params = event.get('queryStringParameters', {})
+    if query_params:
+        debug_param = query_params.get('debug', '').lower()
+        if debug_param in ['true', '1', 'yes']:
+            debug_mode = True
+
+    logger.debug("Event: %s", json.dumps(event))  # Logge das gesamte Event für Debugging, wenn debug_mode=True
 
     # Überprüfen, ob der X-Forwarded-For Header vorhanden ist
     if 'headers' in event:
@@ -41,12 +49,17 @@ def lambda_handler(event, context):
         logger.debug("Keine IP-Adresse gefunden, alle Prüfungen erfolglos!")
 
     # Rückgabe der IP-Adresse im JSON-Format mit Herkunftsinformation
+    response_body = {
+        "ip": ip_address,
+        "message": "Ihre IP-Adresse",
+        "source": ip_source,  # Quelle der IP-Adresse in der Antwort
+    }
+
+    # Wenn debug_mode aktiv ist, gebe das vollständige Event zurück
+    if debug_mode:
+        response_body["event"] = event
+
     return {
         "statusCode": 200,
-        "body": json.dumps({
-            "ip": ip_address,
-            "message": "Ihre IP-Adresse",
-            "source": ip_source,  # Quelle der IP-Adresse in der Antwort
-            "event": event,  # Event zur Ansicht im Response für Debugging
-        }),
+        "body": json.dumps(response_body),
     }
